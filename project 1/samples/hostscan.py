@@ -23,6 +23,19 @@ def getHostsOnTheSameNetwork():
 	# Scan the network for hoss
 	hostInfo = portScanner.all_hosts()	
 	
-	return hostInfo
+	# The list of hosts that are up.
+	liveHosts = []
+	
+	# Go trough all the hosts returned by nmap
+	# and remove all who are not up and running
+	for host in hostInfo:
+		
+		# Is ths host up?
+		if portScanner[host].state() == "up":
+			liveHosts.append(host)
+	
+	
+		
+	return liveHosts
 
 print(getHostsOnTheSameNetwork())
