@@ -29,7 +29,6 @@ def isInfectedSystem():
 	f = open("/tmp/infected.txt","r")
 	f.write("Name Was Here")
 	f.close()
-e
     except IOError:
 	    print "This system should be infected"
 	    return false
