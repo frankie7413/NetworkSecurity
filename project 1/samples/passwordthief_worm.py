@@ -63,7 +63,6 @@ def spreadAndExecute(sshClient,Ipaddress):
         localpath = '/home/passwd_'+Ipaddress
         sshClient.get(remotepath, localpath)
 
-	pass
 def tryCredentials(host, userName, password, sshClient):
 	
 	# Tries to connect to host host using
