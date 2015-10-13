@@ -26,8 +26,7 @@ def isInfectedSystem():
 	# you created when you marked the system
 	# as infected). 
     try:
-        f = open("/tmp/infected.txt","r")
-	f.write("Name Was Here")
+        f = open("/tmp/infected.txt")
 	f.close()
     except IOError:
 	    print "This system should be infected"
